@@ -4,6 +4,9 @@ import numpy as np
 import plotly
 import plotly.graph_objects as go
 import streamviz
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+
 
 st.set_page_config(layout="wide")
 
@@ -18,7 +21,7 @@ def page2():
         x_values = df["Data e Horário"]
         y_values = df["Quantidade"]
         print(y_values)
-        colors = ["red" if y < 10 else "green" for y in y_values]
+        colors = ["red" if y >= 4 else "green" for y in y_values]
 
         fig = go.Figure(
             data=go.Scatter(
@@ -41,20 +44,32 @@ def page2():
     col1, col2 = st.columns(2)
 
     with col1:
-        streamviz.gauge(
-            0.92,
-            gTitle="KPI Indicator",
-            gSize="MED",
-            sFix="%",
-            gcHigh="#21b581",
-            gcLow="#de8a31",
-            gcMid="#f5d02f",
-            gTheme="#ffffff",
-        )
+        # Create some sample text
+        text = 'Fun, fun, awesome, awesome, tubular, astounding, superb, great, amazing, amazing, amazing, amazing'
+
+        # Create and generate a word cloud image:
+        wordcloud = WordCloud().generate(text)
+        
+        # Display the generated image:
+        plt.imshow(wordcloud, interpolation='bilinear')
+        plt.axis("off")
+        st.pyplot()
+        
+        # streamviz.gauge(
+        #     0.92,
+        #     gTitle="KPI Indicator",
+        #     gSize="MED",
+        #     sFix="%",
+        #     gcHigh="#21b581",
+        #     gcLow="#de8a31",
+        #     gcMid="#f5d02f",
+        #     gTheme="#ffffff",
+        # )
+        
     # Puxando os Alimentos mais consumidos pela Pessoa
     food = {
         "Alimentos": [
-            k for i in df["Alimentos Consumidos"].str.split(",").to_numpy() for k in i
+            k.strip().title() for i in df["Alimentos Consumidos"].str.split(",").to_numpy() for k in i
         ],
     }
     food = pd.DataFrame(food)
@@ -91,11 +106,6 @@ def page2():
         )
         fig = create_plotly_graph(df)
         st.plotly_chart(fig)
-
-
-st.sidebar.title("Navigation")
-st.sidebar.image("marcho_sister.png", width=100)
-st.sidebar.divider()
 
 pg = st.navigation(
     {
