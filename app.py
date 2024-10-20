@@ -3,10 +3,9 @@ import pandas as pd
 import numpy as np
 import plotly
 import plotly.graph_objects as go
-import streamviz
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
-
+import datetime
 
 st.set_page_config(layout="wide")
 
@@ -41,49 +40,28 @@ def page2():
 
         return fig
 
-    col1, col2 = st.columns(2)
-
-    with col1:
-        # Create some sample text
-        text = 'Fun, fun, awesome, awesome, tubular, astounding, superb, great, amazing, amazing, amazing, amazing'
-
-        # Create and generate a word cloud image:
-        wordcloud = WordCloud().generate(text)
-        
-        # Display the generated image:
-        plt.imshow(wordcloud, interpolation='bilinear')
-        plt.axis("off")
-        st.pyplot()
-        
-        # streamviz.gauge(
-        #     0.92,
-        #     gTitle="KPI Indicator",
-        #     gSize="MED",
-        #     sFix="%",
-        #     gcHigh="#21b581",
-        #     gcLow="#de8a31",
-        #     gcMid="#f5d02f",
-        #     gTheme="#ffffff",
-        # )
-        
-    # Puxando os Alimentos mais consumidos pela Pessoa
-    food = {
-        "Alimentos": [
-            k.strip().title() for i in df["Alimentos Consumidos"].str.split(",").to_numpy() for k in i
-        ],
-    }
-    food = pd.DataFrame(food)
-    mostConsumedItems = (
-        food.groupby("Alimentos")["Alimentos"]
-        .count()
-        .reset_index(name="count")
-        .sort_values(["count"], ascending=False)
-        .head(3)
-        .to_numpy()
-    )
-
-    with col2:
-        st.header("Ranking Principais Alimentos:")
+    with st.container():
+        # Puxando os Alimentos mais consumidos pela Pessoa
+        food = {
+            "Alimentos": [
+                k.strip().title()
+                for i in df["Alimentos Consumidos"].str.split(",").to_numpy()
+                for k in i
+            ],
+        }
+        food = pd.DataFrame(food)
+        mostConsumedItems = (
+            food.groupby("Alimentos")["Alimentos"]
+            .count()
+            .reset_index(name="count")
+            .sort_values(["count"], ascending=False)
+            .head(3)
+            .to_numpy()
+        )
+        st.markdown(
+            f'<h1 style="background-color:#9fb851;color:#ffffff;font-size:44px;border-radius:10px;padding:10px">{"Overview"}</h1>',
+            unsafe_allow_html=True,
+        )
         st.divider()
         col1, col2, col3 = st.columns(3)
         col1.metric(
@@ -104,8 +82,93 @@ def page2():
             f"{mostConsumedItems[2][1]} Vezes",
             delta_color="off",
         )
-        fig = create_plotly_graph(df)
-        st.plotly_chart(fig)
+
+    st.divider()
+
+    with st.container():
+        col1, col2 = st.columns(2)
+
+        with col1:
+            fig = create_plotly_graph(df)
+            st.plotly_chart(fig)
+
+        with col2:
+            st.header("WordCloud")
+
+            with st.container():
+                col1, col2, col3 = st.columns(3)
+
+                with col1:
+                    compulsao = st.selectbox("Houve Compulsão", ("Todos", "Sim", "Não"))
+                    compulsaoValue = compulsao if compulsao != "Todos" else ""
+                with col2:
+                    periodo = st.multiselect(
+                        "Período",
+                        ["Antes", "Durante", "Depois"],
+                        ["Antes", "Durante", "Depois"],
+                    )
+                    lookupDict = {
+                        "Durante": "Como me senti durante?",
+                        "Antes": "Como eu estava me sentindo antes?",
+                        "Depois": "Como me senti depois?",
+                    }
+                with col3:
+                    dateFilter = st.date_input(
+                        "Escolha a Data",
+                        (min(df["Data e Horário"].dt.date), max(df["Data e Horário"].dt.date)),
+                        format="DD/MM/YYYY",
+                    )
+                    beginDate = dateFilter[0]
+                    endDate = dateFilter[1]
+
+            tableQuery = "Compulsão.str.contains(@compulsaoValue) & (`Data e Horário`.dt.date >= @beginDate & `Data e Horário`.dt.date <= @endDate)"
+            try:
+                text = ",".join(
+                    [
+                        x.strip()
+                        for j in [
+                            k.split(",")
+                            for i in df.query(tableQuery)[
+                                [lookupDict[k] for k in periodo]
+                            ].to_numpy()
+                            for k in i
+                        ]
+                        for x in j
+                    ]
+                )
+                wordcloud = WordCloud(
+                    colormap="gist_earth_r",
+                    background_color="#f0f0f0",
+                    width=590,
+                    height=290,
+                ).generate(text)
+                fig, ax = plt.subplots()
+                ax.imshow(wordcloud, interpolation="bilinear")
+                ax.axis("off")
+                st.pyplot(fig)
+            except:
+                st.error("Selecione ao menos uma Opção", icon="🚨")
+
+st.markdown(
+    """
+<style>
+    [data-testid=stSidebarContent] {
+        background-color: #9fb851;
+    }
+    
+    [data-testid=stSidebarContent] span{
+        color: #ffffff
+    }
+    
+    [data-testid=stSidebarContent] header{
+        color: #ffffff;
+        font-size:30px
+    }
+    
+</style>
+""",
+    unsafe_allow_html=True,
+)
 
 pg = st.navigation(
     {
@@ -115,5 +178,6 @@ pg = st.navigation(
         ]
     }
 )
+
 
 pg.run()

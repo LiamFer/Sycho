@@ -4,7 +4,6 @@ import datetime
 import numpy as np
 import os
 
-
 if "selectedFood" not in st.session_state:
     st.session_state.selectedFood = []
 
@@ -34,6 +33,11 @@ else:
     df.to_excel(FILEPATH, index=False)
     df = getFile()
 
+
+st.markdown(
+    f'<h1 style="background-color:#9fb851;color:#ffffff;font-size:44px;border-radius:10px;padding:10px;margin-bottom:20px">{"Diário"}</h1>',
+    unsafe_allow_html=True,
+)
 
 with st.container(border=True):
     st.write("Inside the form")
