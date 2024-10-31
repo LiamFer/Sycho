@@ -152,8 +152,9 @@ def page2():
 st.markdown(
     """
 <style>
+
     [data-testid=stSidebarContent] {
-        background-color: #9fb851;
+        background-color: #436d2e;
     }
     
     [data-testid=stSidebarContent] span{
