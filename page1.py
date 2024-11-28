@@ -11,12 +11,12 @@ if "options" not in st.session_state:
     st.session_state.options = []
 
 # Puxando o Arquivo com as Infos
-FILEPATH = r"C:\\Users\\Windows\\Desktop\\cc.xlsx"
 
+user_home = os.path.expanduser("~")  # Obtém o diretório home do usuário
+FILEPATH = os.path.join(user_home, "Desktop", "diarioAlimentar.xlsx")
 
 def getFile():
     return pd.read_excel(FILEPATH)
-
 
 if os.path.isfile(FILEPATH):
     df = getFile()
@@ -74,12 +74,39 @@ with st.container(border=True):
         )
         
 
-    situation = st.selectbox(
+    situation = st.text_input(
         "Situação: O que estava acontecendo?",
-        ("Email", "Home phone", "Mobile phone"),
+        label_visibility = "visible",
+        disabled = False,
+        placeholder= "Descreva o que estava acontecendo no momento",
+    )
+
+    beforeSituation = st.text_input(
+        "Como me senti antes?",
+        label_visibility = "visible",
+        disabled = False,
+        placeholder= "Descreva o que estava sentindo antes da refeição",
     )
     
+    duringSituation = st.text_input(
+        "Como me senti durante?",
+        label_visibility = "visible",
+        disabled = False,
+        placeholder= "Descreva o que estava sentindo durante a refeição",
+    )
+
+    afterSituation = st.text_input(
+        "Como me senti depois?",
+        label_visibility = "visible",
+        disabled = False,
+        placeholder= "Descreva o que estava sentindo após a refeição",
+    )
+
+    
+    
     submitButton = st.button("Submit")
+
+    
 
     if submitButton:
         new_row = {
@@ -88,7 +115,10 @@ with st.container(border=True):
             "Compulsão": compulsao,
             "Quantidade": quantityConsumed,
             "Alimentos Consumidos": ",".join(st.session_state.selectedFood),
-            "Situação": situation
+            "Situação": situation,
+            "Como eu estava me sentindo antes?": beforeSituation,
+            "Como me senti depois?": afterSituation,
+            "Como me senti durante?": duringSituation
         }
         
         new_row_df = pd.DataFrame([new_row])

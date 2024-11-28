@@ -1,25 +1,30 @@
+import os
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly
 import plotly.graph_objects as go
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
-import datetime
 
 st.set_page_config(layout="wide")
 
-
 def page2():
+    # Construindo o FILEPATH de forma dinâmica
+    user_home = os.path.expanduser("~")  # Obtém o diretório home do usuário
+    FILEPATH = os.path.join(user_home, "Desktop", "diarioAlimentar.xlsx")  # Caminho dinâmico para o arquivo
+
+    # Verifica se o arquivo existe
+    if not os.path.exists(FILEPATH):
+        st.error(f"O arquivo não foi encontrado em: {FILEPATH}")
+        return
+
     # Puxando o Arquivo com as Infos
-    FILEPATH = r"C:\\Users\\Windows\\Desktop\\cc.xlsx"
     df = pd.read_excel(FILEPATH)
 
     # Função pro Gráfico do Plotly
     def create_plotly_graph(data):
         x_values = df["Data e Horário"]
         y_values = df["Quantidade"]
-        print(y_values)
         colors = ["red" if y >= 4 else "green" for y in y_values]
 
         fig = go.Figure(
@@ -146,15 +151,14 @@ def page2():
                 ax.imshow(wordcloud, interpolation="bilinear")
                 ax.axis("off")
                 st.pyplot(fig)
-            except:
+            except Exception as e:
                 st.error("Selecione ao menos uma Opção", icon="🚨")
 
 st.markdown(
     """
 <style>
-
     [data-testid=stSidebarContent] {
-        background-color: #436d2e;
+        background-color: #9fb851;
     }
     
     [data-testid=stSidebarContent] span{
@@ -179,6 +183,5 @@ pg = st.navigation(
         ]
     }
 )
-
 
 pg.run()
